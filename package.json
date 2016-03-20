@@ -1,7 +1,7 @@
 {
   "name": "mc-download",
-  "version": "0.1.0",
-  "description": "Multi-channel download utility for http and scp",
+  "version": "0.1.1",
+  "description": "A node based multi-channel download utility for http and scp",
   "main": "lib/mc-download.js",
   "repository": {
     "type": "git",
