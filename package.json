@@ -1,6 +1,6 @@
 {
   "name": "mc-download",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "A node based multi-channel download utility for http and scp",
   "main": "lib/mc-download.js",
   "repository": {
@@ -27,12 +27,21 @@
   "homepage": "https://github.com/lkwdwrd/mc-download",
   "dependencies": {
     "bluebird": "^3.3.4",
-    "decompress": "^3.0.0",
-    "download": "^4.4.3",
+    "caw": "^1.2.0",
+    "got": "^6.2.0",
+    "gulp-decompress": "^1.2.0",
+    "gulp-rename": "^1.2.2",
     "inquirer": "^0.12.0",
     "lodash": "^4.6.1",
     "mkdirp": "^0.5.1",
-    "scp2": "^0.2.2"
+    "multi-progress": "^1.0.0",
+    "rc": "^1.1.6",
+    "ssh2": "^0.5.0",
+    "stream-combiner2": "^1.1.1",
+    "url": "^0.11.0",
+    "vinyl-fs": "^2.4.2",
+    "vinyl-source-stream": "^1.1.0",
+    "winston": "^2.2.0"
   },
   "devDependencies": {}
 }
