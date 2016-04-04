@@ -222,7 +222,7 @@ The MultiDownload is, of course, a wrapper around creating several Download inst
 
 Type: `Array`
 
-This will be an array of download objects with location, dest, and optionally opts keys. These correspond with the constructor of the Download object and you can find more info on each of the keys values in the [Download object](#the-download-object) documentation. One exception is the options key. In MultiDownlod, the adapter's progress method is normalized so that it can monitor the progress of add downloads rather than just one Download object.
+This will be an array of download objects with location, dest, and optionally opts keys. These correspond with the constructor of the Download object and you can find more info on each of the keys values in the [Download object](#the-download-object) documentation. One exception is the options key. In MultiDownlod, the adapter's progress method is normalized so that it can monitor the progress of all downloads rather than just one Download object.
 
 ### options
 
