@@ -1,6 +1,6 @@
 # MC-Download
 
-A single file download utility for node working over http or scp. HTTP downloads use the [download](https://github.com/kevva/download) library, SCP works over [node-scp2](https://github.com/spmjs/node-scp2).
+A File download utility for node working over any channel that can provide a read stream. Out of the box it supports http and scp. HTTP downloads use [got](https://github.com/sindresorhus/got), and SCP works over [ssh2](https://github.com/mscdex/ssh2).
 
 ## Getting Started
 
@@ -8,16 +8,22 @@ A single file download utility for node working over http or scp. HTTP downloads
 $ npm install mc-download --save
 ```
 
-You can then require MC-Download in your project and you will have access to the Download object and helpers.
+You can then require MC-Download in your project and you will have access to the Download object and various helpers.
 
 ```
 var Download = require('mc-download');
 
-// download via http
-Download.download( 'https://github.com/lkwdwrd/somefile.txt', '.', {}, cb );
+// download via http with object
+var dl = new Download('https://github.com/lkwdwrd/mc-download/archive/master.zip', '.');
+dl.run();
+// download via http with helper
+Download.download('https://github.com/lkwdwrd/mc-download/archive/master.zip', '.', {}, callback);
 
-// download via scp
-Download.download( 'lkwdwrd@github.com:/var/www/html/somefile.txt', '.', { type: 'scp' }, cb );
+// download via scp with object
+var dl = new Download( 'lkwdwrd@example.com:/var/www/somefile.txt', '.', {type: 'scp'});
+dl.run();
+// download via scp with helper
+Download.download('lkwdwrd@example.com:/var/www/somefile.txt', '.', {type: 'scp'}, callback );
 ```
 
 ## The Download Object
@@ -91,13 +97,19 @@ Type: `boolean`
 
 Whether to attempt extracting the file after the download is complete. This will extract .zip, .tar, .tar.gz, and .tar.bz files using the [decompress](https://github.com/kevva/decompress/) library.
 
+#### options.transforms
+
+Type: `Array`
+
+An array of transform streams to run each downloaded file through. Downloads are run through [VinylFS](https://github.com/gulpjs/vinyl-fs), which opens up just about any gulp plugin as a transform. Note that transforms can also be added with `dl.addTransform(stream)` on a constructed Download object, but before calling `.run()`.
+
 #### Additional Options
 
 For http, the options object is passed to the (got.stream)[https://github.com/sindresorhus/got] methd. Any options supported by Got are also supported by MC-Download.
 
 Similarly, MC-Download uses the client API of [ssh2](https://github.com/mscdex/ssh2), and the options object is passed to the `.connect()` method allowing more control over how the SSH connection is made.
 
-### SCP Download Tips
+## SCP Download Tips
 
 SCP is a bit trickier than HTTP downloads. To try and ease the complexit, MC-Download makes an attempt to be very flexible with SCP downloads. It will automatically look for an id_rsa key in `$HOME/.ssh/` and pass that along to the ssh client. This works on Windows as well using your user home directory. If the key requires a passphrase, MC-Download will detect this and prompt the user for it. Since this is a pure node implementation of SSH, it does not currently pull SSH passphrases out of keychain or similar tools. The Passphrase for an ssh key can also be passed in the options object `passkey: secretcode`.
 
@@ -157,3 +169,61 @@ var options = {
 };
 Download.download( locations, '.', options );
 ```
+## Multi-Download
+
+MC-Download allows you to set up and monitor multiple downloads at once over whatever channels are available. This is made possible through a MultiDownload object. This object takes an array of objects with location, dest, and opts keys (accepting the same values in these keys as [the Download object](#the-download-object) takes for its constructor).
+
+```
+var dl = new Download.MultiDownload([
+	{
+		location: 'https://github.com/lkwdwrd/mc-download/archive/master.zip',
+		dest: '.'
+	},
+	{
+		location: 'lkwdwrd@example.com:/var/www/somefiles.tar.gz',
+		dest: 'random/path',
+		opts: {
+			type: 'scp',
+			extract: true
+		}
+	}
+], opts );
+dl.run();
+```
+
+There is also a `.multi` helper which will automatically create a MultiDownload object and call `run()` automatically, similart to the `.download()` helper.
+
+```
+Download.multi([
+	{
+		location: 'https://github.com/lkwdwrd/mc-download/archive/master.zip',
+		dest: '.'
+	},
+	{
+		location: 'lkwdwrd@example.com:/var/www/somefiles.tar.gz',
+		dest: 'random/path',
+		opts: {
+			type: 'scp',
+			extract: true
+		}
+	}
+], opts );
+```
+
+## The MultiDownload Object
+
+```
+var dl = new Download.MultiDownload( downloads, [options] );
+```
+
+The MultiDownload is, of course, a wrapper around creating several Download instances and normalizing progress reporting. Once created, call `dl.run()` to run all of the downloads simultaneously. Before calling `dl.run()` you can allso call `dl.add( download )` to add additional download object before runnng them all.
+
+### downloads
+
+Type: `Array`
+
+This will be an array of download objects with location, dest, and optionally opts keys. These correspond with the constructor of the Download object and you can find more info on each of the keys values in the [Download object](#the-download-object) documentation. One exception is the options key. In MultiDownlod, the adapter's progress method is normalized so that it can monitor the progress of add downloads rather than just one Download object.
+
+### options
+
+This object is far more limited than the main Download object options. It will either contain an [adapter object](#optionsadapter) or and [adapter options object](#optionsadapteropts)
